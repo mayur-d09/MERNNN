@@ -32,12 +32,22 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/supms')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
+// Serve static frontend build
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/parking', require('./routes/parking'));
 app.use('/api/payment', require('./routes/payment'));
 
+// Catch-all handler for frontend routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+});
+
 // WebSocket for real-time updates
+
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
   

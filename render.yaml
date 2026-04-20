@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: parking-app
+    env: node
+    plan: free
+    buildCommand: npm install &amp;&amp; npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        fromDatabase:
+          name: parking-db
+          property: connectionString
+    autoDeploy: true
