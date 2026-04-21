@@ -2,9 +2,9 @@
   "name": "supms-smart-parking-system",
   "version": "1.0.0",
   "description": "Smart Urban Parking Management System - MERN Stack",
-  "main": "backend/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "cd backend && npm start",
+    "start": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm start",
@@ -23,14 +23,18 @@
     "mongodb",
     "websocket"
   ],
-  "author": "Your Name",
+  "author": "mayur-d09",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.0"
   },
   "dependencies": {
-    "express": "^5.2.1",
+    "express": "^4.18.2",
     "path": "^0.12.7",
-    "serve-static": "^2.2.1"
+    "serve-static": "^1.15.0",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
