@@ -3,65 +3,70 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket config
 const io = socketIo(server, {
-  cors: { 
-    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"], 
-    methods: ["GET", "POST"],
-    credentials: true
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
   }
 });
 
-// Middleware
-// CORS configuration
-const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
+// 🔥 DEMO ROUTE (IMPORTANT FOR RENDER CHECK)
+app.get("/", (req, res) => {
+  res.send("Smart Parking Backend is LIVE 🚀");
+});
 
-app.use(cors(corsOptions));
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
+// MongoDB (safe fallback if not connected)
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/supms')
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Serve static frontend build
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+  .catch(err => console.log('MongoDB not connected (demo mode)'));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/parking', require('./routes/parking'));
 app.use('/api/payment', require('./routes/payment'));
 
-// Catch-all handler for frontend routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+// 🔥 Try serving frontend ONLY if build exists
+const buildPath = path.join(__dirname, '../frontend/build');
+
+app.use(express.static(buildPath));
+
+app.get("*", (req, res) => {
+  if (require('fs').existsSync(buildPath)) {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  } else {
+    res.send("Frontend not built. Backend is running 🚀");
+  }
 });
 
-// WebSocket for real-time updates
-
+// Socket events
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
-  
+
   socket.on('join-zone', (zoneId) => {
     socket.join(`zone-${zoneId}`);
   });
-  
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
 });
 
-// Make io accessible to routes
 app.set('io', io);
 
+// PORT FIX (IMPORTANT FOR RENDER)
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
